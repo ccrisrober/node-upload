@@ -1,0 +1,22 @@
+{
+  "name": "node-upload",
+  "version": "1.0.0",
+  "description": "Simple file uploader for NodeJS applications",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maldicion069/node-upload.git"
+  },
+  "author": "maldicion069 <ccrisrober@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/maldicion069/node-upload/issues"
+  },
+  "homepage": "https://github.com/maldicion069/node-upload#readme",
+  "dependencies": {
+    "multer": "^1.2.0"
+  }
+}
