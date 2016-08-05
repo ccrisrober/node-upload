@@ -26,7 +26,7 @@ var storage = multer.diskStorage({
 	}
 });
 function fileFilter (req, file, cb){
-	console.log(path.extname(file.originalname));
+	//console.log(path.extname(file.originalname));
 	if(req.extensions.indexOf(path.extname(file.originalname)) > -1) {
 		return cb(null, true);
 	}
@@ -52,7 +52,7 @@ exports.upload_file = function(req, res, field_name, types, config) {
 	req.extensions = (types && typeof types !== "undefined") ? (types instanceof Array) ? types : [types] : _defTypes;
 	upload.limits = extend({}, _limits, config || {});
 	upload.single(field_name)(req, res, function(err) {
-		console.log(err);
+		//console.log(err);
 		if(err || req.fileValidationError) {
 			return res.send(err || req.fileValidationError);
 		}
@@ -65,7 +65,7 @@ exports.upload_array_files = function(req, res, field_name, types, config) {
 		files: 2
 	}, _limits, config || {});
 	upload.array(field_name)(req, res, function(err) {
-		console.log(err);
+		//console.log(err);
 		if(err || req.fileValidationError) {
 			return res.send(err || req.fileValidationError);
 		}
