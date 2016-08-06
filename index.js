@@ -1,79 +1,114 @@
-var _filename = function(name, extension) {
-	return name + Date.now() + extension;
-}
-var _limits = {
-	fieldNameSize: 100
-};
-var _defTypes = [".jpeg", ".jpg", ".png"];
-var _defDirectory = "./uploads/";
-
-// ==========================================
-// ==========================================
-// 			Please, don´t edit this
-// ==========================================
-// ==========================================
-var multer = require("multer");
-var path = require("path");
-
-var storage = multer.diskStorage({
-	destination: function (req, file, cb) {
-		cb(null, _defDirectory);
-	},
-	filename: function (req, file, cb) {
-		var name = file.originalname.substr(0, file.originalname.lastIndexOf('.'));
-		var extension = path.extname(file.originalname);
-		cb(null, _filename(name, extension));
-	}
-});
-function fileFilter (req, file, cb){
-	//console.log(path.extname(file.originalname));
-	if(req.extensions.indexOf(path.extname(file.originalname)) > -1) {
-		return cb(null, true);
-	}
-	req.fileValidationError = 'goes wrong on the extension';
-	return cb(null, false, new Error(req.fileValidationError));
-}
-var upload = multer({
-	storage: storage, 
-	dest: "uploads/", 
-	fileFilter: fileFilter,
-	limits: _limits
-});
 function extend(target) {
-	var sources = [].slice.call(arguments, 1);
-	sources.forEach(function (source) {
-		for (var prop in source) {
-			target[prop] = source[prop];
-		}
-	});
-	return target;
+    var sources = [].slice.call(arguments, 1);
+    sources.forEach(function (source) {
+        for (var prop in source) {
+            target[prop] = source[prop];
+        }
+    });
+    return target;
 }
-exports.upload_file = function(req, res, field_name, types, config) {
-	req.extensions = (types && typeof types !== "undefined") ? (types instanceof Array) ? types : [types] : _defTypes;
-	upload.limits = extend({}, _limits, config || {});
-	upload.single(field_name)(req, res, function(err) {
-		//console.log(err);
-		if(err || req.fileValidationError) {
-			return res.json({ "err": err || req.fileValidationError });
-		} else if(!req.file) {
-			return res.json({ "err": "File dont founded" });
-		}
-		res.json(req.file);
-		//res.json({"filename": req.file.filename, "type": req.file.mimetype});
-	});
+var path = require("path");
+var multer = require("multer");
+
+var _isFunction = function(obj) {
+	return !!(obj && obj.constructor && obj.call && obj.apply);
 };
-exports.upload_array_files = function(req, res, field_name, types, config) {
-	req.extensions = (types && typeof types !== "undefined") ? (types instanceof Array) ? types : [types] : _defTypes;
-	upload.limits = extend({
-		files: 2
-	}, _limits, config || {});
-	upload.array(field_name)(req, res, function(err) {
-		//console.log(err);
-		if(err || req.fileValidationError) {
-			return res.json({ "err": err || req.fileValidationError });
-		} else if(!req.file) {
-			return res.json({ "err": "Files dont founded" });
+
+var NodeUpload = (function () {
+    function NodeUpload(filenameFN, routeStr) {
+        if (_isFunction(filenameFN)) {
+            NodeUpload.prototype._filename = filenameFN;
+        }
+        var fs = require('fs');
+        this.route = routeStr || NodeUpload._defDirectory;
+
+		if (!fs.existsSync(this.route)){
+	    	fs.mkdirSync(this.route);
 		}
-		res.json(req.files);
-	});
-};
+        var self = this;
+        this.storage = multer.diskStorage({
+            destination: function (req, file, cb) {
+                cb(null, self.route);	//NodeUpload._defDirectory);
+            },
+            filename: function (req, file, cb) {
+                var name = file.originalname.substr(0, file.originalname.lastIndexOf('.'));
+		        var ext = path.extname(file.originalname).toLowerCase();
+				if (ext.substring(0, 1) == '.') { 
+					ext = ext.substring(1);
+				}
+                cb(null, self._filename(name) + ext);
+            }
+        });
+        this.upload = multer({
+            storage: this.storage,
+            dest: this.route,	//NodeUpload._defDirectory,
+            fileFilter: NodeUpload.fileFilter,
+            limits: NodeUpload._limits
+        });
+    }
+    NodeUpload.removeDotsExtension = function(exts) {
+    	var ext;
+    	for(var i = 0; i < exts.length; i++) {
+    		ext = exts[i];
+    		if (ext.substring(0, 1) == '.') { 
+				ext = ext.substring(1);
+			}
+			exts[i] = ext;
+    	}
+    	return exts;
+    }
+    NodeUpload.prototype.upload_file = function (req, res, fieldName, types, config) {
+        req.extensions = (types && typeof types !== "undefined") ? (types instanceof Array) ? 
+        	NodeUpload.removeDotsExtension(types) : NodeUpload.removeDotsExtension([types]) : NodeFilter._defTypes;
+
+        this.upload.limits = extend({}, NodeUpload._limits, config || {});
+
+        this.upload.single(fieldName)(req, res, function (err) {
+            if (err || req.fileValidationError) {
+                return res.json({ "err": err || req.fileValidationError });
+            }
+            else if (!req.file) {
+                return res.json({ "err": "File dont founded" });
+            }
+            res.json(req.file);
+        });
+    };
+    NodeUpload.prototype.upload_array_files = function (req, res, fieldName, types, config) {
+        req.extensions = (types && typeof types !== "undefined") ? (types instanceof Array) ? 
+        	NodeUpload.removeDotsExtension(types) : NodeUpload.removeDotsExtension([types]) : NodeFilter._defTypes;
+
+		this.upload.limits = extend({
+            files: 2
+        }, NodeUpload._limits, config || {});
+		this.upload.array(fieldName)(req, res, function(err) {
+			if(err || req.fileValidationError) {
+				return res.json({ "err": err || req.fileValidationError });
+			} else if(!req.files) {
+				return res.json({ "err": "Files dont founded" });
+			}
+			res.json(req.files);
+		});
+    };
+    NodeUpload.prototype._filename = function (name) {
+        return name + Date.now();
+    };
+    NodeUpload.fileFilter = function (req, file, cb) {
+        var ext = path.extname(file.originalname).toLowerCase();
+		if (ext.substring(0, 1) == '.') { 
+			ext = ext.substring(1);
+		}
+        if (req.extensions.indexOf(ext) > -1) {
+            return cb(null, true);
+        }
+        req.fileValidationError = 'goes wrong on the extension';
+        return cb(null, false, new Error(req.fileValidationError));
+    };
+    NodeUpload._limits = {
+        fieldNameSize: 100
+    };
+    NodeUpload._defTypes = ["jpeg", "jpg", "png"];
+    NodeUpload._defDirectory = "./uploads/";
+    return NodeUpload;
+}());
+
+exports = module.exports = NodeUpload;
