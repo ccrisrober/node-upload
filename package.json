@@ -1,6 +1,6 @@
 {
   "name": "node-upload",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Simple file uploader for NodeJS applications",
   "main": "index.js",
   "scripts": {

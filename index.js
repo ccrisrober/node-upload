@@ -56,7 +56,8 @@ exports.upload_file = function(req, res, field_name, types, config) {
 		if(err || req.fileValidationError) {
 			return res.send(err || req.fileValidationError);
 		}
-		res.json({"filename": req.file.filename, "type": req.file.mimetype});
+		res.json(req.file);
+		//res.json({"filename": req.file.filename, "type": req.file.mimetype});
 	});
 };
 exports.upload_array_files = function(req, res, field_name, types, config) {
