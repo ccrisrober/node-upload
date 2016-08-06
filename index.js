@@ -54,7 +54,9 @@ exports.upload_file = function(req, res, field_name, types, config) {
 	upload.single(field_name)(req, res, function(err) {
 		//console.log(err);
 		if(err || req.fileValidationError) {
-			return res.send(err || req.fileValidationError);
+			return res.json({ "err": err || req.fileValidationError });
+		} else if(!req.file) {
+			return res.json({ "err": "File dont founded" });
 		}
 		res.json(req.file);
 		//res.json({"filename": req.file.filename, "type": req.file.mimetype});
@@ -68,7 +70,9 @@ exports.upload_array_files = function(req, res, field_name, types, config) {
 	upload.array(field_name)(req, res, function(err) {
 		//console.log(err);
 		if(err || req.fileValidationError) {
-			return res.send(err || req.fileValidationError);
+			return res.json({ "err": err || req.fileValidationError });
+		} else if(!req.file) {
+			return res.json({ "err": "Files dont founded" });
 		}
 		res.json(req.files);
 	});
