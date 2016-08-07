@@ -37,10 +37,7 @@ var NodeUpload = (function () {
 			filename: function (req, file, cb) {
 				var name = file.originalname.substr(0, file.originalname.lastIndexOf('.'));
 				var ext = path.extname(file.originalname).toLowerCase();
-				if (ext.substring(0, 1) == '.') { 
-					ext = ext.substring(1);
-				}
-				cb(null, self._filename(name) + ext);
+				cb(null, self._filename(file) + ext);
 			}
 		});
 		this.upload = multer({
@@ -109,8 +106,8 @@ var NodeUpload = (function () {
 			res.json(req.files);
 		});
 	};
-	NodeUpload.prototype._filename = function (name) {
-		return name + Date.now();
+	NodeUpload.prototype._filename = function (file) {
+		return file.originalname.substr(0, file.originalname.lastIndexOf('.')) + Date.now();
 	};
 	NodeUpload.fileFilter = function (req, file, cb) {
 		var ext = path.extname(file.originalname).toLowerCase();

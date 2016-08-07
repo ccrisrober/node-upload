@@ -8,8 +8,8 @@ Simple file uploader for NodeJS applications
 	// Second parameter: Optional uploading route (Default: "./uploads/") 
 	//		NOTE: Create route if not exist
 	// Third parameter: Optional configuration
-	var upload = new NodeUpload(function() {
-		return "FOO" + Math.random();
+	var upload = new NodeUpload(function(file) {
+		return file.fieldname + '-' + Math.random();
 	}, "./myroute/", {
 		fieldSize: 15
 	});
